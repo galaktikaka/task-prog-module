@@ -1,0 +1,24 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: bench-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+  redis:
+    image: redis:7
+    container_name: bench-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly no
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
