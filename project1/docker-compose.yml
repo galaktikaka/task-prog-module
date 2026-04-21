@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres:16
+    container_name: shop-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: shop_db
+      POSTGRES_USER: shop_user
+      POSTGRES_PASSWORD: shop_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shop_user -d shop_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shop-app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: shop_db
+      DB_USER: shop_user
+      DB_PASSWORD: shop_password
+      LOG_LEVEL: INFO
+      DB_CONNECT_RETRIES: 20
+      DB_CONNECT_RETRY_DELAY_SEC: 2
+    command: ["python", "-m", "app.main"]
+
+volumes:
+  postgres_data:
+
