@@ -1,0 +1,80 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cache-bench-postgres
+    environment:
+      POSTGRES_USER: bench
+      POSTGRES_PASSWORD: bench
+      POSTGRES_DB: bench
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bench -d bench"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+  redis:
+    image: redis:7-alpine
+    container_name: cache-bench-redis
+    ports:
+      - "6380:6379"
+    command: redis-server --appendonly no
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+  app-cache-aside:
+    build: ./app
+    container_name: cache-bench-cache-aside
+    environment:
+      CACHE_STRATEGY: cache_aside
+      DATABASE_URL: postgresql://bench:bench@postgres:5432/bench
+      REDIS_URL: redis://redis:6379/0
+      WRITE_BACK_FLUSH_INTERVAL_SEC: "2"
+      WRITE_BACK_FLUSH_BATCH_SIZE: "50"
+    ports:
+      - "8001:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  app-write-through:
+    build: ./app
+    container_name: cache-bench-write-through
+    environment:
+      CACHE_STRATEGY: write_through
+      DATABASE_URL: postgresql://bench:bench@postgres:5432/bench
+      REDIS_URL: redis://redis:6379/1
+      WRITE_BACK_FLUSH_INTERVAL_SEC: "2"
+      WRITE_BACK_FLUSH_BATCH_SIZE: "50"
+    ports:
+      - "8002:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  app-write-back:
+    build: ./app
+    container_name: cache-bench-write-back
+    environment:
+      CACHE_STRATEGY: write_back
+      DATABASE_URL: postgresql://bench:bench@postgres:5432/bench
+      REDIS_URL: redis://redis:6379/2
+      WRITE_BACK_FLUSH_INTERVAL_SEC: "2"
+      WRITE_BACK_FLUSH_BATCH_SIZE: "50"
+    ports:
+      - "8003:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy

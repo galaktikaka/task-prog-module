@@ -1,0 +1,34 @@
+Benchmark: duration=30s rps=200 workers=8 pool=500
+==========================================================================================
+
+>>> cache_aside / read_heavy (read=80%)
+[cache_aside   ] profile=read_heavy   req=36855 thr= 1228.5 rps avg=  6.50ms p95= 18.53ms db=13500 hit= 79.2% errors=0
+
+>>> cache_aside / balanced (read=50%)
+[cache_aside   ] profile=balanced     req=36121 thr= 1204.0 rps avg=  6.64ms p95= 18.04ms db=26993 hit= 50.6% errors=0
+
+>>> cache_aside / write_heavy (read=20%)
+[cache_aside   ] profile=write_heavy  req=36448 thr= 1214.9 rps avg=  6.58ms p95= 16.68ms db=34970 hit= 20.2% errors=0
+
+>>> write_through / read_heavy (read=80%)
+[write_through ] profile=read_heavy   req=36044 thr= 1201.5 rps avg=  6.65ms p95= 19.00ms db= 7258 hit=100.0% errors=0
+
+>>> write_through / balanced (read=50%)
+[write_through ] profile=balanced     req=34808 thr= 1160.3 rps avg=  6.89ms p95= 18.24ms db=17324 hit=100.0% errors=0
+
+>>> write_through / write_heavy (read=20%)
+[write_through ] profile=write_heavy  req=33663 thr= 1122.1 rps avg=  7.13ms p95= 17.79ms db=26917 hit=100.0% errors=0
+
+>>> write_back / read_heavy (read=80%)
+[write_back    ] profile=read_heavy   req=36316 thr= 1210.5 rps avg=  6.60ms p95= 19.92ms db= 1115 hit= 99.1% errors=0
+    write-back: flushes=17 flushed_items=850
+
+>>> write_back / balanced (read=50%)
+[write_back    ] profile=balanced     req=34541 thr= 1151.4 rps avg=  6.94ms p95= 20.42ms db=  900 hit=100.0% errors=0
+    write-back: flushes=18 flushed_items=900
+
+>>> write_back / write_heavy (read=20%)
+[write_back    ] profile=write_heavy  req=32239 thr= 1074.6 rps avg=  7.43ms p95= 22.60ms db=  950 hit=100.0% errors=0
+    write-back: flushes=19 flushed_items=950
+
+Saved: results/benchmark_results.csv, results/benchmark_results.md, results/benchmark_results.json
