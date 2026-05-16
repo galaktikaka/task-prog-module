@@ -1,0 +1,10 @@
+=== 01_dirty_read ===
+timestamp: 2026-05-16 15:39:50 UTC
+СУБД: MySQL 8, isolation READ UNCOMMITTED
+Сценарий: T1 обновляет balance без COMMIT, T2 читает «грязные» данные.
+Примечание: T2 читает без START TRANSACTION — иначе InnoDB ждёт блокировку строки.
+T1 после UPDATE (без COMMIT): balance = 2500.00
+T2 SELECT (пока T1 не закоммитила): balance = 2500.00
+Dirty read: ДА (T2 увидела незакоммиченное значение T1)
+T1: ROLLBACK
+T2 SELECT после ROLLBACK T1: balance = 1000.00

@@ -1,0 +1,13 @@
+=== 03_phantom_read ===
+timestamp: 2026-05-16 15:39:50 UTC
+СУБД: PostgreSQL 16, isolation READ COMMITTED
+Сценарий: два SELECT по department='sales', между ними INSERT+COMMIT в T2.
+T1 первый SELECT: 2 строк(и)
+  - id=1 name=Ivan Petrov salary=800.00
+  - id=2 name=Anna Kozlova salary=950.00
+T2: INSERT id=4 department=sales + COMMIT
+T1 второй SELECT: 3 строк(и)
+  - id=1 name=Ivan Petrov salary=800.00
+  - id=2 name=Anna Kozlova salary=950.00
+  - id=4 name=New Sales Hire salary=700.00
+Phantom read: ДА (появилась новая строка в том же диапазоне)

@@ -1,0 +1,8 @@
+=== 05_prevention ===
+timestamp: 2026-05-16 15:39:51 UTC
+Проверка защиты от lost update через SELECT ... FOR UPDATE
+T1 SELECT FOR UPDATE: balance = 1000.00
+T2 ждёт блокировку FOR UPDATE от T1...
+T1: +100 и COMMIT (сняла блокировку)
+Итоговый balance: 1200.00 (ожидалось 1200)
+Потеря обновления устранена: ДА

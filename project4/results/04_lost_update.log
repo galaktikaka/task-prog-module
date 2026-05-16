@@ -1,0 +1,10 @@
+=== 04_lost_update ===
+timestamp: 2026-05-16 15:39:50 UTC
+СУБД: PostgreSQL 16, isolation READ COMMITTED
+Сценарий: обе транзакции читают 1000, каждая пишет 1100 (+100), без FOR UPDATE.
+T1 SELECT: balance = 1000.00
+T2 SELECT: balance = 1000.00
+T1: UPDATE balance=1100 + COMMIT
+T2: UPDATE balance=1100 (от исходных 1000) + COMMIT
+Итоговый balance: 1100.00
+Lost update: ДА (ожидалось 1200 при двух инкрементах +100)

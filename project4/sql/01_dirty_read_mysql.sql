@@ -1,0 +1,19 @@
+-- Dirty read (MySQL, READ UNCOMMITTED)
+-- Сессия A и B — два отдельных подключения (psql/mysql CLI или два терминала).
+--
+-- Сессия A:
+--   SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+--   START TRANSACTION;
+--   UPDATE accounts SET balance = 2500.00 WHERE id = 1;
+--   SELECT balance FROM accounts WHERE id = 1;  -- 2500 (ещё не COMMIT)
+--
+-- Сессия B (пока A не сделала COMMIT):
+--   SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+--   START TRANSACTION;
+--   SELECT balance FROM accounts WHERE id = 1;  -- 2500 ← dirty read
+--
+-- Сессия A:
+--   ROLLBACK;
+--
+-- Сессия B:
+--   SELECT balance FROM accounts WHERE id = 1;  -- снова 1000 (откат A)

@@ -1,0 +1,8 @@
+=== 02_non_repeatable_read ===
+timestamp: 2026-05-16 15:39:50 UTC
+СУБД: PostgreSQL 16, isolation READ COMMITTED (default)
+Сценарий: два SELECT одной строки в одной транзакции, между ними UPDATE+COMMIT в T2.
+T1 первый SELECT: balance = 1000.00
+T2: UPDATE balance=1500 + COMMIT
+T1 второй SELECT (тот же BEGIN): balance = 1500.00
+Non-repeatable read: ДА (значение изменилось внутри транзакции T1)

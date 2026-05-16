@@ -1,0 +1,15 @@
+-- Lost update (PostgreSQL, READ COMMITTED, read-modify-write без блокировки)
+-- Сессия A:
+--   BEGIN;
+--   SELECT balance FROM accounts WHERE id = 1;   -- 1000
+--   -- пауза, пока B тоже прочитает
+--   UPDATE accounts SET balance = 1100.00 WHERE id = 1;  -- 1000 + 100
+--   COMMIT;
+--
+-- Сессия B:
+--   BEGIN;
+--   SELECT balance FROM accounts WHERE id = 1;   -- 1000 (до commit A или после — см. сценарий)
+--   UPDATE accounts SET balance = 1100.00 WHERE id = 1;  -- 1000 + 100, перезаписывает 1100 от A
+--   COMMIT;
+--
+-- Итог: balance = 1100, ожидалось 1200 при двух +100.

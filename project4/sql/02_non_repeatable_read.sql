@@ -1,0 +1,13 @@
+-- Non-repeatable read (PostgreSQL, READ COMMITTED — уровень по умолчанию)
+-- Сессия A:
+--   BEGIN;
+--   SELECT balance FROM accounts WHERE id = 1;   -- 1000.00
+--
+-- Сессия B:
+--   BEGIN;
+--   UPDATE accounts SET balance = 1500.00 WHERE id = 1;
+--   COMMIT;
+--
+-- Сессия A (тот же BEGIN):
+--   SELECT balance FROM accounts WHERE id = 1;   -- 1500.00 ← другое значение
+--   COMMIT;

@@ -1,0 +1,53 @@
+=== 01_dirty_read ===
+timestamp: 2026-05-16 15:39:50 UTC
+СУБД: MySQL 8, isolation READ UNCOMMITTED
+Сценарий: T1 обновляет balance без COMMIT, T2 читает «грязные» данные.
+Примечание: T2 читает без START TRANSACTION — иначе InnoDB ждёт блокировку строки.
+T1 после UPDATE (без COMMIT): balance = 2500.00
+T2 SELECT (пока T1 не закоммитила): balance = 2500.00
+Dirty read: ДА (T2 увидела незакоммиченное значение T1)
+T1: ROLLBACK
+T2 SELECT после ROLLBACK T1: balance = 1000.00
+
+=== 02_non_repeatable_read ===
+timestamp: 2026-05-16 15:39:50 UTC
+СУБД: PostgreSQL 16, isolation READ COMMITTED (default)
+Сценарий: два SELECT одной строки в одной транзакции, между ними UPDATE+COMMIT в T2.
+T1 первый SELECT: balance = 1000.00
+T2: UPDATE balance=1500 + COMMIT
+T1 второй SELECT (тот же BEGIN): balance = 1500.00
+Non-repeatable read: ДА (значение изменилось внутри транзакции T1)
+
+=== 03_phantom_read ===
+timestamp: 2026-05-16 15:39:50 UTC
+СУБД: PostgreSQL 16, isolation READ COMMITTED
+Сценарий: два SELECT по department='sales', между ними INSERT+COMMIT в T2.
+T1 первый SELECT: 2 строк(и)
+  - id=1 name=Ivan Petrov salary=800.00
+  - id=2 name=Anna Kozlova salary=950.00
+T2: INSERT id=4 department=sales + COMMIT
+T1 второй SELECT: 3 строк(и)
+  - id=1 name=Ivan Petrov salary=800.00
+  - id=2 name=Anna Kozlova salary=950.00
+  - id=4 name=New Sales Hire salary=700.00
+Phantom read: ДА (появилась новая строка в том же диапазоне)
+
+=== 04_lost_update ===
+timestamp: 2026-05-16 15:39:50 UTC
+СУБД: PostgreSQL 16, isolation READ COMMITTED
+Сценарий: обе транзакции читают 1000, каждая пишет 1100 (+100), без FOR UPDATE.
+T1 SELECT: balance = 1000.00
+T2 SELECT: balance = 1000.00
+T1: UPDATE balance=1100 + COMMIT
+T2: UPDATE balance=1100 (от исходных 1000) + COMMIT
+Итоговый balance: 1100.00
+Lost update: ДА (ожидалось 1200 при двух инкрементах +100)
+
+=== 05_prevention ===
+timestamp: 2026-05-16 15:39:51 UTC
+Проверка защиты от lost update через SELECT ... FOR UPDATE
+T1 SELECT FOR UPDATE: balance = 1000.00
+T2 ждёт блокировку FOR UPDATE от T1...
+T1: +100 и COMMIT (сняла блокировку)
+Итоговый balance: 1200.00 (ожидалось 1200)
+Потеря обновления устранена: ДА

@@ -1,0 +1,16 @@
+-- Phantom read (PostgreSQL, READ COMMITTED)
+-- Сессия A:
+--   BEGIN;
+--   SELECT id, full_name, salary FROM employees WHERE department = 'sales' ORDER BY id;
+--   -- 2 строки
+--
+-- Сессия B:
+--   BEGIN;
+--   INSERT INTO employees (full_name, department, salary)
+--   VALUES ('New Sales Hire', 'sales', 700.00);
+--   COMMIT;
+--
+-- Сессия A (тот же BEGIN):
+--   SELECT id, full_name, salary FROM employees WHERE department = 'sales' ORDER BY id;
+--   -- 3 строки ← фантомная строка
+--   COMMIT;
